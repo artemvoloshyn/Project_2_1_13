@@ -1,0 +1,24 @@
+aws_region                 = "us-east-1"
+availability_zone          = "us-east-1a"
+availability1_zone          = "us-east-1b"
+environment                = "cloudfront"
+instance_type              = "t2.micro"
+cidr                       = "10.0.0.0/16"
+publicCIDR                 = "10.0.1.0/24"
+privateCIDR                 = "10.0.2.0/24"
+private1CIDR                 = "10.0.3.0/24"
+security_group_name        = "cloudfront"
+private_subnet_security_group_name = "private-cloudfront"
+security_group_description = "cloudfront"
+private_subnet_security_group_description = "private-cloudfront"
+allowed_ports              = ["80", "22", "443", "8080", "8000", "8001"]
+private_subnet_allowed_ports              = ["5432", "6379"]
+whitelist_locations        = ["US", "CA", "GB", "DE", "PL"]
+aws_s3_bucket_name         = "t-e-s-t-9-8-765432-1"
+index_html_source          = "../frontend/templates/index.html"
+config_json_source         = "../frontend/config.json"
+aws_user_account_id        = "087143128777"
+postgresql_db_name = "my_db"
+postgresql_user_name = "my_user"
+postgresql_password_value = "my_password"
+
