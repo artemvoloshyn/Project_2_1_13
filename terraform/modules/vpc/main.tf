@@ -18,6 +18,16 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
+resource "aws_subnet" "public1_subnet" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.public1CIDR
+  availability_zone = var.availability1_zone
+
+  tags = {
+    Name = "public-subnet"
+  }
+}
+
 resource "aws_subnet" "private_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.privateCIDR

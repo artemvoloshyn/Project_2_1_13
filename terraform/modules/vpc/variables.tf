@@ -17,6 +17,12 @@ variable "publicCIDR" {
 
 }
 
+variable "public1CIDR" {
+  type        = string
+  description = "value"
+
+}
+
 variable "privateCIDR" {
   type        = string
   description = "value"
