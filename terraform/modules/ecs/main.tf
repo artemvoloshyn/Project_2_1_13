@@ -24,7 +24,7 @@ resource "aws_ecs_service" "frontend" {
     container_name   = "frontend"
     container_port   = 80
   }
-  depends_on = [data.aws_iam_role.ecs_service_role]
+  # depends_on = [data.aws_iam_role.ecs_service_role]
 }
 
 # Frontend Task Definition
@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name  = "frontend"
-      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/frontend"
+      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
       portMappings = [
         {
           containerPort = 80
@@ -50,11 +50,11 @@ resource "aws_ecs_task_definition" "frontend" {
       environment = [
         {
           name = "BACKEND_RDS_URL"
-          value = aws_ecs_service.backend_rds.id
+          value = "${aws_service_discovery_service.backend_rds_service.name}.${aws_service_discovery_private_dns_namespace.main.name}"
         },
         {
           name = "BACKEND_REDIS_URL"
-          value = aws_ecs_service.backend_redis.id
+          value = "${aws_service_discovery_service.backend_redis_service.name}.${aws_service_discovery_private_dns_namespace.main.name}"
         },
       ]
     }

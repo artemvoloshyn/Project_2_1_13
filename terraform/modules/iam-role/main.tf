@@ -55,7 +55,8 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
     Statement = [
       {
         Effect = "Allow"
-        Action = [
+          Action = [
+          "ecr:BatchCheckLayerAvailability",
           "ecr:GetAuthorizationToken",
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer",
