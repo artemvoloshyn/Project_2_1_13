@@ -19,3 +19,8 @@ output "ELASTICACHE" {
   value = module.elasticache.aws_redis_endpoint
 
 }
+
+output "ALB_DNS" {
+  value = module.alb.frontend_alb_dns
+
+}

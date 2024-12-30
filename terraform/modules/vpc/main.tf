@@ -74,6 +74,7 @@ resource "aws_route_table_association" "internet_rta_association" {
   route_table_id = aws_route_table.internet_rt.id
 }
 
+
 resource "aws_security_group" "main_security_group" {
   name        = var.security_group_name
   description = var.security_group_description  
@@ -117,5 +118,36 @@ resource "aws_security_group" "private_subnet_security_group" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "private-route-table"
+  }
+}
+
+resource "aws_route_table_association" "private_assoc" {
+  subnet_id      = aws_subnet.private1_subnet.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.us-east-1.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids   = [aws_subnet.private1_subnet.id]
+  security_group_ids = [aws_security_group.private_subnet_security_group.id]
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.us-east-1.s3"
+  route_table_ids = [aws_route_table.private_rt.id]
+  tags = {
+    Name = "s3-endpoint"
   }
 }

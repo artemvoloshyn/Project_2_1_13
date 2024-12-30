@@ -2,6 +2,10 @@ resource "aws_ecs_cluster" "main" {
   name = var.cluster_name
 }
 
+data "aws_iam_role" "ecs_service_role" {
+  name = "AWSServiceRoleForECS"
+}
+
 # Frontend Service
 resource "aws_ecs_service" "frontend" {
   name            = "frontend"
@@ -20,6 +24,7 @@ resource "aws_ecs_service" "frontend" {
     container_name   = "frontend"
     container_port   = 80
   }
+  depends_on = [data.aws_iam_role.ecs_service_role]
 }
 
 # Frontend Task Definition
@@ -30,11 +35,12 @@ resource "aws_ecs_task_definition" "frontend" {
   cpu                      = var.cpu_frontend
   memory                   = var.ram_frontend
   execution_role_arn = var.ecs_task_execution_role
+  task_role_arn = var.ecs_task_role
 
   container_definitions = jsonencode([
     {
       name  = "frontend"
-      image = "nginx:latest"
+      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/frontend"
       portMappings = [
         {
           containerPort = 80
@@ -80,11 +86,12 @@ resource "aws_ecs_task_definition" "backend_rds" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.cpu_rds
   memory                   = var.ram_rds
+  execution_role_arn = var.ecs_task_execution_role
 
   container_definitions = jsonencode([
     {
       name  = "backend_rds"
-      image = "nginx:latest"
+      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/backend_rds"
       portMappings = [
         {
           containerPort = 8000
@@ -158,11 +165,12 @@ resource "aws_ecs_task_definition" "backend_redis" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.cpu_redis
   memory                   = var.ram_redis
+  execution_role_arn = var.ecs_task_execution_role
 
   container_definitions = jsonencode([
     {
       name  = "backend_redis"
-      image = "nginx:latest"
+      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/backend_redis"
       portMappings = [
         {
           containerPort = 8001

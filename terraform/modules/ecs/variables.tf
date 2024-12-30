@@ -117,3 +117,9 @@ variable "ecs_task_execution_role" {
   description = "value"
 
 }
+
+variable "ecs_task_role" {
+  type        = string
+  description = "value"
+
+}
