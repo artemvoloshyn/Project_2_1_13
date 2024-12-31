@@ -55,7 +55,7 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
     Statement = [
       {
         Effect = "Allow"
-          Action = [
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetAuthorizationToken",
           "ecr:BatchGetImage",
@@ -64,8 +64,34 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
           "s3:ListBucket"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:CreateNetworkInterface",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeVpcs"
+        ]
+        Resource = "*"
       }
     ]
   })
+}
+
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_extra_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.ecs_task_execution_role.name
 }
 
