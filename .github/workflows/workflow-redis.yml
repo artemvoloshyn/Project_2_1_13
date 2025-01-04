@@ -75,7 +75,7 @@ jobs:
       # 5. Download task definition
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition backend_redis-task --query taskDefinition --output json | | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' > task-definition.json
+          aws ecs describe-task-definition --task-definition backend_redis-task --query 'taskDefinition' --output json | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' > task-definition.json
 
       - uses: mikefarah/yq@master
         with:
