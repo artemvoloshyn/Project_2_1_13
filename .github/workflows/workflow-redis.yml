@@ -92,7 +92,7 @@ jobs:
         run: aws ecs register-task-definition --cli-input-json file://task-definition.json
 
       - name: Update ECS service 
-        run: aws ecs update-service --cluster App --service backend_redis --force-new-deployment --region ${{ secrets.AWS_REGION }}
+        run: aws ecs update-service --cluster App --service backend_redis -task-definition backend_redis-task --force-new-deployment --region ${{ secrets.AWS_REGION }}
 
   
       
