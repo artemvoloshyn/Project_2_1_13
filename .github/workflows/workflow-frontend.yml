@@ -1,11 +1,11 @@
-# name: 'backend_redis/*'
+# name: 'frontend/*'
 on: workflow_dispatch 
   # push:
   #   paths:
-  #     - 'backend_rds/**'
+  #     - 'frontend/**'
 env:
-      IMAGE_NAME: ${{ vars.IMAGE_NAME_RDS }}
-      TASK_DEFINITION: ${{ vars.BACKEND_RDS_TASK_DEFINITION }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME_FRONTEND }}
+      TASK_DEFINITION: ${{ vars.FRONTEND_TASK_DEFINITION }}
 
 jobs:
   ci:
@@ -89,7 +89,7 @@ jobs:
         run: aws ecs register-task-definition --cli-input-json file://task-definition.json
 
       - name: Update ECS service 
-        run: aws ecs update-service --cluster App --service backend_rds --task-definition ${{ env.TASK_DEFINITION }} --force-new-deployment --region ${{ secrets.AWS_REGION }}
+        run: aws ecs update-service --cluster App --service frontend --task-definition ${{ env.TASK_DEFINITION }} --force-new-deployment --region ${{ secrets.AWS_REGION }}
 
           
       
