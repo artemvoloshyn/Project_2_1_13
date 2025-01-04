@@ -1,5 +1,0 @@
-
-# frontend/requirements.txt
-
-Django==3.2
-requests
