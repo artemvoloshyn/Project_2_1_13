@@ -1,11 +1,11 @@
 # name: 'backend_redis/*'
-on: # workflow_dispatch 
-  push:
-    paths:
-      - 'backend_redis/**'
+on: workflow_dispatch 
+  # push:
+  #   paths:
+  #     - 'backend_redis/**'
 env:
       IMAGE_NAME: ${{ vars.IMAGE_NAME_REDIS }}
-      DOCKER_COMPOSE_FILE: ${{ vars.BACKEND_REDIS_DOCKER_COMPOSE_FILE }}
+      # DOCKER_COMPOSE_FILE: ${{ vars.BACKEND_REDIS_DOCKER_COMPOSE_FILE }}
 
 jobs:
   ci:
@@ -64,49 +64,67 @@ jobs:
         run: |
           echo "COMMIT_TAG=$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       
+
+      # 5. Download task definition
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition frontend-task --query taskDefinition --output json > task-definition.json
+
       - uses: mikefarah/yq@master
         with:
           cmd: |
-            yq e '.services.${{ env.IMAGE_NAME }} |= {"image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}"} + .' -i ${{ env.DOCKER_COMPOSE_FILE }}
+            yq e '.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}"' task-definition.json
+
+          
+          # yq e '.services.${{ env.IMAGE_NAME }} |= {"image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}"} + .' -i ${{ env.DOCKER_COMPOSE_FILE }}
+        
+
+      - name:
+        run: aws ecs register-task-definition --cli-input-json file://task-definition.json
+
+      - name:
+        run: aws ecs update-service --cluster App --service backend_redis --force-new-deployment --region ${{ secrets.AWS_REGION }}
+
+  
       
-      - name: Copy file from runner to remote VM
-        uses: appleboy/scp-action@v0.1.5
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ${{ vars.AWS_EC2_USERNAME }}
-          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-          source: "./${{ env.DOCKER_COMPOSE_FILE }},./.env"
-          target: "~/"
+      # - name: Copy file from runner to remote VM
+      #   uses: appleboy/scp-action@v0.1.5
+      #   with:
+      #     host: ${{ secrets.AWS_HOST }}
+      #     username: ${{ vars.AWS_EC2_USERNAME }}
+      #     key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+      #     source: "./${{ env.DOCKER_COMPOSE_FILE }},./.env"
+      #     target: "~/"
 
-      - name: Add host key to known_hosts
-        run: mkdir -p ~/.ssh && ssh-keyscan ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+      # - name: Add host key to known_hosts
+      #   run: mkdir -p ~/.ssh && ssh-keyscan ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
       
-      - name: On EC2 set up AWS CLI, AWS credentials, login to ECR, deploy ${{ env.IMAGE_NAME }}
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ${{ vars.AWS_EC2_USERNAME }}
-          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws configure set region ${{ secrets.AWS_REGION }}            
+      # - name: On EC2 set up AWS CLI, AWS credentials, login to ECR, deploy ${{ env.IMAGE_NAME }}
+      #   uses: appleboy/ssh-action@v0.1.5
+      #   with:
+      #     host: ${{ secrets.AWS_HOST }}
+      #     username: ${{ vars.AWS_EC2_USERNAME }}
+      #     key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+      #     port: 22
+      #     script: |
+      #       aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #       aws configure set region ${{ secrets.AWS_REGION }}            
 
-            cd ~
+      #       cd ~
 
-            ls -la
+      #       ls -la
             
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      #       aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-            docker compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
-            # Check if ${{ env.DOCKER_COMPOSE_FILE }} up was successful
-            if docker compose -f ${{ env.DOCKER_COMPOSE_FILE }} ps --format "{{.Names}}\t{{.Image}}\t{{.Status}}" | grep -i "${{ env.IMAGE_NAME }}" | grep -i "Up"; then
-              echo "Container '${{ env.IMAGE_NAME }}' is running"
-            else     
-              echo "Container '${{ env.IMAGE_NAME }}' is not running"
-              exit 1
-            fi
+      #       docker compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
+      #       # Check if ${{ env.DOCKER_COMPOSE_FILE }} up was successful
+      #       if docker compose -f ${{ env.DOCKER_COMPOSE_FILE }} ps --format "{{.Names}}\t{{.Image}}\t{{.Status}}" | grep -i "${{ env.IMAGE_NAME }}" | grep -i "Up"; then
+      #         echo "Container '${{ env.IMAGE_NAME }}' is running"
+      #       else     
+      #         echo "Container '${{ env.IMAGE_NAME }}' is not running"
+      #         exit 1
+      #       fi
   
       # - name: Push code to repository if docker-compose up is successful
       #   if: ${{ success() }}

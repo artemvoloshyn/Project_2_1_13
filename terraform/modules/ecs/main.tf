@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name  = "frontend"
-      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
+      image = "087143128777.dkr.ecr.us-east-1.amazonaws.com/frontend"
       portMappings = [
         {
           containerPort = 80
