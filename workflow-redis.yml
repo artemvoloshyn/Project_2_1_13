@@ -78,7 +78,9 @@ jobs:
           
           # yq e '.services.${{ env.IMAGE_NAME }} |= {"image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}"} + .' -i ${{ env.DOCKER_COMPOSE_FILE }}
         
-
+      - name:
+        run: cat task-definition.json
+        
       - name:
         run: aws ecs register-task-definition --cli-input-json file://task-definition.json
 
