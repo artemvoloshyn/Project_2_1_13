@@ -48,12 +48,12 @@ module "ecs" {
   private1_subnet_id = module.vpc.aws_private1_subnet_id
   aws_vpc_private_subnet_security_group_id = module.vpc.aws_vpc_private_subnet_security_group_id
   aws_lb_target_group_frontend_arn = module.alb.frontend_alb_target_group_arn
-  aws_redis_endpoint = "1" # module.elasticache.aws_redis_endpoint
-  aws_redis_port = "1" # module.elasticache.aws_redis_port
-  aws_postgresql_endpoint = "1" # module.aws-rds.aws_rds_postgres_endpoint
+  aws_redis_endpoint = module.elasticache.aws_redis_endpoint
+  aws_redis_port = module.elasticache.aws_redis_port
+  aws_postgresql_endpoint = module.aws-rds.aws_rds_postgres_endpoint
   aws_postgresql_name = var.postgresql_db_name
   aws_postgresql_password = var.postgresql_password_value
-  aws_postgresql_port = "1" # module.aws-rds.aws_rds_postgres_port
+  aws_postgresql_port = module.aws-rds.aws_rds_postgres_port
   aws_region = var.aws_region
   aws_postgresql_user = var.postgresql_user_name
   ecs_task_execution_role = module.iam-role.ecs_task_execution_role

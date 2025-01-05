@@ -87,6 +87,7 @@ resource "aws_ecs_task_definition" "backend_rds" {
   cpu                      = var.cpu_rds
   memory                   = var.ram_rds
   execution_role_arn = var.ecs_task_execution_role
+  task_role_arn = var.ecs_task_role
 
   container_definitions = jsonencode([
     {
@@ -119,16 +120,16 @@ resource "aws_ecs_task_definition" "backend_rds" {
           name = "DB_PASSWORD"
           value = var.aws_postgresql_password
         },
-      ],
-      logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.backend_rds_app_logs.name
-        "awslogs-region"        = var.aws_region
-        "awslogs-stream-prefix" = "backend_rds"
-       }
+      ]
+      # logConfiguration = {
+      # logDriver = "awslogs"
+      # options = {
+      #   "awslogs-group"         = aws_cloudwatch_log_group.backend_rds_app_logs.name
+      #   "awslogs-region"        = var.aws_region
+      #   "awslogs-stream-prefix" = "backend_rds"
+      #  }
     }
-  }
+  # }
  ])
 }
 
@@ -166,6 +167,7 @@ resource "aws_ecs_task_definition" "backend_redis" {
   cpu                      = var.cpu_redis
   memory                   = var.ram_redis
   execution_role_arn = var.ecs_task_execution_role
+  task_role_arn = var.ecs_task_role
 
   container_definitions = jsonencode([
     {
@@ -186,16 +188,16 @@ resource "aws_ecs_task_definition" "backend_redis" {
           name = "REDIS_PORT"
           value = var.aws_redis_port
         }
-      ],
-      logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.backend_redis_app_logs.name
-        "awslogs-region"        = var.aws_region
-        "awslogs-stream-prefix" = "backend_redis"
-      }
+      ]
+      # logConfiguration = {
+      # logDriver = "awslogs"
+      # options = {
+      #   "awslogs-group"         = aws_cloudwatch_log_group.backend_redis_app_logs.name
+      #   "awslogs-region"        = var.aws_region
+      #   "awslogs-stream-prefix" = "backend_redis"
+      # }
     }
-   } 
+  #  } 
  ])
 }
 
