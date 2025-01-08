@@ -14,6 +14,10 @@ resource "aws_ecs_service" "frontend" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.frontend_service.arn
+  }
+
   network_configuration {
     subnets         = [var.private1_subnet_id]
     security_groups = [var.aws_vpc_private_subnet_security_group_id]
@@ -24,7 +28,14 @@ resource "aws_ecs_service" "frontend" {
     container_name   = "frontend"
     container_port   = 80
   }
+  enable_execute_command = true
   # depends_on = [data.aws_iam_role.ecs_service_role]
+}
+
+## CloudWatch frontend Log Group
+resource "aws_cloudwatch_log_group" "frontend_app_logs" {
+  name              = "/ecs/frontend_app-logs"
+  retention_in_days = 30
 }
 
 # Frontend Task Definition
@@ -50,13 +61,21 @@ resource "aws_ecs_task_definition" "frontend" {
       environment = [
         {
           name = "BACKEND_RDS_URL"
-          value = "${aws_service_discovery_service.backend_rds_service.name}.${aws_service_discovery_private_dns_namespace.main.name}"
+          value = "http://${aws_service_discovery_service.backend_rds_service.name}.${aws_service_discovery_private_dns_namespace.main.name}:8000/test_connection/"
         },
         {
           name = "BACKEND_REDIS_URL"
-          value = "${aws_service_discovery_service.backend_redis_service.name}.${aws_service_discovery_private_dns_namespace.main.name}"
+          value = "http://${aws_service_discovery_service.backend_redis_service.name}.${aws_service_discovery_private_dns_namespace.main.name}:8001/test_connection/"
         },
-      ]
+      ],
+      logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.frontend_app_logs.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "frontend"
+       }
+    }
     }
   ])
 }
@@ -120,16 +139,16 @@ resource "aws_ecs_task_definition" "backend_rds" {
           name = "DB_PASSWORD"
           value = var.aws_postgresql_password
         },
-      ]
-      # logConfiguration = {
-      # logDriver = "awslogs"
-      # options = {
-      #   "awslogs-group"         = aws_cloudwatch_log_group.backend_rds_app_logs.name
-      #   "awslogs-region"        = var.aws_region
-      #   "awslogs-stream-prefix" = "backend_rds"
-      #  }
+      ],
+      logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.backend_rds_app_logs.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "backend_rds"
+       }
     }
-  # }
+  }
  ])
 }
 
@@ -188,16 +207,16 @@ resource "aws_ecs_task_definition" "backend_redis" {
           name = "REDIS_PORT"
           value = var.aws_redis_port
         }
-      ]
-      # logConfiguration = {
-      # logDriver = "awslogs"
-      # options = {
-      #   "awslogs-group"         = aws_cloudwatch_log_group.backend_redis_app_logs.name
-      #   "awslogs-region"        = var.aws_region
-      #   "awslogs-stream-prefix" = "backend_redis"
-      # }
+      ],
+      logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.backend_redis_app_logs.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "backend_redis"
+      }
     }
-  #  } 
+   } 
  ])
 }
 
@@ -214,6 +233,19 @@ resource "aws_service_discovery_private_dns_namespace" "main" {
   name        = "internal.example"
   vpc         = var.vpc_main_id
   description = "Internal service discovery namespace"
+}
+
+resource "aws_service_discovery_service" "frontend_service" {
+  name = "frontend"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+  }
 }
 
 resource "aws_service_discovery_service" "backend_rds_service" {

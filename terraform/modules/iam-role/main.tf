@@ -61,7 +61,10 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer",
           "s3:GetObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
         ]
         Resource = "*"
       },
