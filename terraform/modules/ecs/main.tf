@@ -21,6 +21,7 @@ resource "aws_ecs_service" "frontend" {
   network_configuration {
     subnets         = [var.private1_subnet_id]
     security_groups = [var.aws_vpc_private_subnet_security_group_id]
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -95,6 +96,7 @@ resource "aws_ecs_service" "backend_rds" {
   network_configuration {
     subnets         = [var.private1_subnet_id]
     security_groups = [var.aws_vpc_private_subnet_security_group_id]
+    assign_public_ip = false
   }
 }
 
@@ -175,6 +177,7 @@ resource "aws_ecs_service" "backend_redis" {
   network_configuration {
     subnets         = [var.private1_subnet_id]
     security_groups = [var.aws_vpc_private_subnet_security_group_id]
+    assign_public_ip = false
   }
 }
 
@@ -230,7 +233,7 @@ resource "aws_cloudwatch_log_group" "backend_redis_app_logs" {
 ## Service discovery 
 
 resource "aws_service_discovery_private_dns_namespace" "main" {
-  name        = "internal.example"
+  name        = "internal"
   vpc         = var.vpc_main_id
   description = "Internal service discovery namespace"
 }
@@ -242,33 +245,33 @@ resource "aws_service_discovery_service" "frontend_service" {
     namespace_id = aws_service_discovery_private_dns_namespace.main.id
 
     dns_records {
-      ttl  = 10
+      ttl  = 60
       type = "A"
     }
   }
 }
 
 resource "aws_service_discovery_service" "backend_rds_service" {
-  name = "backend_rds"
+  name = "backend-rds"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main.id
 
     dns_records {
-      ttl  = 10
+      ttl  = 60
       type = "A"
     }
   }
 }
 
 resource "aws_service_discovery_service" "backend_redis_service" {
-  name = "backend_redis"
+  name = "backend-redis"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main.id
 
     dns_records {
-      ttl  = 10
+      ttl  = 60
       type = "A"
     }
   }

@@ -50,7 +50,7 @@ module "ecs" {
   aws_lb_target_group_frontend_arn = module.alb.frontend_alb_target_group_arn
   aws_redis_endpoint = module.elasticache.aws_redis_endpoint
   aws_redis_port = module.elasticache.aws_redis_port
-  aws_postgresql_endpoint = module.aws-rds.aws_rds_postgres_endpoint
+  aws_postgresql_endpoint = split(":", module.aws-rds.aws_rds_postgres_endpoint)[0] 
   aws_postgresql_name = var.postgresql_db_name
   aws_postgresql_password = var.postgresql_password_value
   aws_postgresql_port = module.aws-rds.aws_rds_postgres_port
@@ -64,10 +64,6 @@ module "ecs" {
   ram_frontend = var.ram_frontend
   ram_rds = var.ram_rds
   ram_redis = var.ram_redis
-
-
-
-
 }
 
 module "iam-role" {
